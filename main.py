@@ -3,11 +3,11 @@ import warnings
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from MRI.KNN import knnClassifier, kncWithGridView
-from MRI.RandomForestClassifer import rfClassifier, rfcWithGridView
-from MRI.decision_tree import dtClassifier, dtcWithGridView
-from MRI.logisticRegression import log_reg, log_regWithGridView
-from MRI.mpl import mlpClassifier, mlpWithGridView
+from methods.KNN import knnClassifier, kncWithGridView
+from methods.RandomForestClassifer import rfClassifier, rfcWithGridView
+from methods.decision_tree import dtClassifier, dtcWithGridView
+from methods.logisticRegression import log_reg, log_regWithGridView
+from methods.mpl import mlpClassifier, mlpWithGridView
 from utils.utils import loadDataSet
 
 warnings.filterwarnings("ignore")
