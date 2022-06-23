@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import zero_one_loss, classification_report, confusion_matrix, roc_curve, auc, \
     plot_confusion_matrix
 from sklearn.model_selection import cross_val_score, GridSearchCV
-
+import time
 
 def rfClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     if infoPrint:
@@ -19,9 +19,9 @@ def rfClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     accuracy = auc(rfc_fpr, rfc_tpr)
     if infoPrint:
         print("Train score: ", score_train_rfc, "\nTest score: ", ncv_score_rfc)
-        print("Cross Validation output: ", score_rfcl.mean())
-        print("Standard Deviation for Random Forest: ", score_rfcl.std())
-        print("Variance for Random Forest: ", np.var(score_rfcl))
+        print("Cross Validated Score: ", score_rfcl.mean())
+        print("Standard Deviation: ", score_rfcl.std())
+        print("Variance: ", np.var(score_rfcl))
         print("0-1 Loss: ", zero_one_loss(y_test, y_pred_rfc))
         print("Accuracy:", accuracy)
         print(classification_report(y_test, y_pred_rfc))
@@ -39,6 +39,7 @@ def rfClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
 
 def rfcWithGridView(x_train, y_train):
     print("-- Execute RFC with Grid View")
+    tic = time.perf_counter()
     # Number of trees in random forest
     n_estimators = [int(x) for x in np.linspace(start=10, stop=100, num=10)]
 
@@ -68,4 +69,5 @@ def rfcWithGridView(x_train, y_train):
                                   n_jobs=-1)
 
     optimal_params.fit(x_train, y_train)
-    return optimal_params
+    toc = time.perf_counter()
+    return optimal_params, toc-tic

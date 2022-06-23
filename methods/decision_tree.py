@@ -1,5 +1,5 @@
 import warnings
-
+import time
 import numpy as np
 from matplotlib import pyplot as plt
 from plotly.offline import plot
@@ -18,7 +18,7 @@ def dtClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     if infoPrint:
         print("\n-- DECISION TREE CLASSIFIER")
 
-    dtc = DecisionTreeClassifier(criterion='entropy', max_depth=14).fit(x_train, y_train)
+    dtc = DecisionTreeClassifier(criterion='entropy', max_depth=7).fit(x_train, y_train)
     y_pred_dct = dtc.predict(x_test)
     ncv_score_dct = dtc.score(x_test, y_test)
     score_train_dct = dtc.score(x_train, y_train)
@@ -27,8 +27,7 @@ def dtClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     accuracy = auc(dtc_fpr, dtc_tpr)
     if infoPrint:
         print("Train score: ", score_train_dct, "\nTest score: ", ncv_score_dct)
-        print("Cross Validation output: ", score_dct)
-        print("Cross Validated Score for Decision Tree: ", score_dct.mean(), "\nStandard Deviation for Decision Tree: ",
+        print("Cross Validated Score: ", score_dct.mean(), "\nStandard Deviation: ",
               score_dct.std(), "\nVariance  for Decision Tree: ", np.var(score_dct))
         print("0-1 Loss: ", zero_one_loss(y_test, y_pred_dct))
         print("Accuracy:", accuracy)
@@ -49,9 +48,11 @@ def dtClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
 
 def dtcWithGridView(x_train, y_train):
     print("-- Execute DCT with Grid View")
+    tic = time.perf_counter()
     param_grid = {'criterion': ['gini', 'entropy'],
                   'max_depth': range(1, 100)}
     optimal_params  = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, cv=5, refit=True, error_score=0,
                           n_jobs =-1, return_train_score=True)
     optimal_params .fit(x_train, y_train)
-    return optimal_params
+    toc = time.perf_counter()
+    return optimal_params, toc-tic

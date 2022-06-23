@@ -1,7 +1,6 @@
 import warnings
 from matplotlib import pyplot as plt
-
-
+import time
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 from sklearn.metrics import zero_one_loss, classification_report, confusion_matrix, plot_confusion_matrix, roc_curve, \
@@ -24,10 +23,9 @@ def knnClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     accuracy = auc(knc_fpr, knc_tpr)
     if infoPrint:
         print("Train score: ", score_train_knc, "\nTest score: ", ncv_score_knc)
-        print("Cross Validation output: ", score_knc)
-        print("Cross Validated Score for KNN: ", score_knc.mean())
-        print("Standard Deviation for KNN: ", score_knc.std())
-        print("Variance  for KNN: ", np.var(score_knc))
+        print("Cross Validated Score: ", score_knc.mean())
+        print("Standard Deviation: ", score_knc.std())
+        print("Variance: ", np.var(score_knc))
         print("0-1 Loss: ", zero_one_loss(y_test, y_pred_knc))
         print("Accuracy:", accuracy)
         print(classification_report(y_test, y_pred_knc))
@@ -45,8 +43,10 @@ def knnClassifier(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
 
 def kncWithGridView(x_train, y_train):
     print("-- Execute KNC with Grid View")
+    tic = time.perf_counter()
     param_grid = {'n_neighbors': [5,10,15,30,60,90,120], 'weights': ['uniform','distance'], 'algorithm':['kd_tree','ball_tree','brute'],'p':[1,2]}
     search = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5, refit=True, error_score=0, n_jobs=-1, return_train_score=True)
     search.fit(x_train, y_train)
-    return search
+    toc = time.perf_counter()
+    return search, toc-tic
 

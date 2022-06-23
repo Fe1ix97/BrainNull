@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.metrics import roc_curve, auc, plot_confusion_matrix, zero_one_loss, classification_report
-
+import time
 
 def log_reg(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     if infoPrint:
@@ -17,9 +17,9 @@ def log_reg(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
     accuracy = auc(lgr_fpr, lgr_tpr)
     if infoPrint:
         print("Train score: ", score_train_rfc, "\nTest score: ", ncv_score_rfc)
-        print("Cross Validation output: ", score_rfcl.mean())
-        print("Standard Deviation for Random Forest: ", score_rfcl.std())
-        print("Variance for Random Forest: ", np.var(score_rfcl))
+        print("Cross Validation Score: ", score_rfcl.mean())
+        print("Standard Deviation: ", score_rfcl.std())
+        print("Variance: ", np.var(score_rfcl))
         print("0-1 Loss: ", zero_one_loss(y_test, y_pred_rfc))
         print("Accuracy:", accuracy)
         print(classification_report(y_test, y_pred_rfc))
@@ -37,6 +37,7 @@ def log_reg(x_train, x_test, y_train, y_test, y, infoPrint, genplot):
 
 def log_regWithGridView(x_train, y_train):
     print("-- Execute LR with Grid View")
+    tic = time.perf_counter()
     # Create the param grid
     param_grid = {'penalty': ['l1', 'l2'],
                   'C': [0.001, 0.01, 0.1, 1, 2, 3, 5, 10, 100, 1000]}
@@ -50,4 +51,5 @@ def log_regWithGridView(x_train, y_train):
 
     optimal_params.fit(x_train, y_train)
     optimal_params.fit(x_train, y_train)
-    return optimal_params
+    toc = time.perf_counter()
+    return optimal_params, toc-tic

@@ -4,7 +4,10 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from sklearn.model_selection import train_test_split
+import os
 
+import tensorflow as tf
+from tensorflow import keras
 
 
 
@@ -70,6 +73,8 @@ def loadDataSet(genplot):
             print(os.path.join(dirname, filename))
     print("Caricamento dataset")
     data = pd.read_csv('input/oasis_longitudinal.csv')
+    #pd.set_option('max_columns', None)
+    pd.set_option('display.max_columns', None)
     if genplot:
         generate_plot(data)
 
@@ -84,6 +89,7 @@ def loadDataSet(genplot):
     y = data['Group'].values
     X = data[['M/F', 'Age', 'EDUC', 'SES', 'MMSE', 'eTIV', 'nWBV', 'ASF']]
 
+    print(data.head())
 
 
     correlation_matrix = data.corr()
@@ -94,48 +100,5 @@ def loadDataSet(genplot):
         y,
         test_size=0.25,
         random_state=25)
-    return X_train, X_test, y_train, y_test, X, y
+    return X_train, X_test, y_train, y_test, X, y, data
 
-# Mi aiuta a dividere le colonne di oggetti da quelle numeriche
-def sepdatatype(data):
-    categorical_data = pd.DataFrame()
-    numerical_data = pd.DataFrame()
-
-    for col in data.columns:
-        if data[col].dtype == 'O':
-            categorical_data = pd.concat([categorical_data, pd.DataFrame(data[col])], axis=1)
-        else:
-            numerical_data = pd.concat([numerical_data, pd.DataFrame(data[col])], axis=1)
-    return categorical_data, numerical_data
-
-# Questa funzione è stata pensata per rimuovere i valori anomali da una colonna in modo da ottenere un set di dati ridotto
-def olrem(data):
-    length = data.shape[0]
-    Q1 = data.quantile(0.25)
-    Q3 = data.quantile(0.75)
-    IQR = Q3 - Q1
-    lrange = Q1 - 1.5 * IQR
-    urange = Q3 + 1.5 * IQR
-    for i in range(length):
-
-        if data[i] < lrange or data[i] > urange:
-            data[i] = 0
-
-    return data
-
-
-def repol(data):
-    length = data.shape[0]
-    for col in data.columns:
-
-        Q1 = data[col].quantile(0.25)
-        Q3 = data[col].quantile(0.75)
-        IQR = Q3 - Q1
-        lrange = Q1 - 1.5 * IQR
-        urange = Q3 + 1.5 * IQR
-
-        mn = olrem(data[col]).mean()
-        for j in range(length):
-            if data[col][j] < lrange or data[col][j] > urange:
-                data[col][j] = mn
-    return data
