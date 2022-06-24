@@ -89,7 +89,7 @@ def loadDataSet(genplot):
     y = data['Group'].values
     X = data[['M/F', 'Age', 'EDUC', 'SES', 'MMSE', 'eTIV', 'nWBV', 'ASF']]
 
-    print(data.head())
+    #print(data.head())
 
 
     correlation_matrix = data.corr()

@@ -2,6 +2,7 @@ import pickle
 import warnings
 import time
 
+import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
@@ -11,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from methods.KNN import knnClassifier, kncWithGridView
 from methods.RandomForestClassifer import rfClassifier, rfcWithGridView
 from methods.decision_tree import dtClassifier, dtcWithGridView
-from methods.kmeans import kmns
+from methods.kmeans import kmns, kmns_k_search
 from methods.logisticRegression import log_reg, log_regWithGridView
 from methods.mpl import mlpClassifier, mlpWithGridView
 from utils.utils import loadDataSet
@@ -39,36 +40,12 @@ X_test_scaled = scaler.transform(X_test)
 
 
 def notsup():
-    dataframe = pd.DataFrame(x, y)
-    print(dataframe.head())
-
-    scaled_array = scaler.fit_transform(dataframe)
-    scaled_dataframe = pd.DataFrame(scaled_array, columns=dataframe.columns)
-
-    kmeans_model = KMeans(n_clusters=1)
-    kmeans_model.fit(scaled_array)
-
-    scaled_dataframe["cluster"] = kmeans_model.labels_
-    print(scaled_dataframe.head())
-    k_to_test = range(2, 25, 1)  # [2,3,4, ..., 24]
-    silhouette_scores = {}
-
-    for k in k_to_test:
-        model_kmeans_k = KMeans(n_clusters=k)
-        model_kmeans_k.fit(scaled_dataframe.drop("cluster", axis=1))
-        labels_k = model_kmeans_k.labels_
-        score_k = metrics.silhouette_score(scaled_dataframe.drop("cluster", axis=1), labels_k)
-        silhouette_scores[k] = score_k
-
-    plt.figure(figsize=(16, 5))
-    plt.plot(silhouette_scores.values())
-    plt.xticks(range(0, 23, 1), silhouette_scores.keys())
-    plt.title("Silhouette Metric")
-    plt.xlabel("k")
-    plt.ylabel("Silhouette")
-    plt.axvline(1, color="r")
-    plt.show()
-
+    tic = time.perf_counter()
+    kms, kms_frp, kms_tpr = kmns(X_train_scaled, X_test_scaled, y_train, y_test, True)
+    pickle.dump(kms.fit(X_train, y_train), open(kms_filename, 'wb'))
+    toc = time.perf_counter()
+    print(f"\n-- Learning completed in {toc - tic:0.4f} seconds")
+    pickle.dump(kms.fit(X_train, y_train), open(kms_filename, 'wb'))
 
 def executeClassifier():
     tic = time.perf_counter()
@@ -77,7 +54,7 @@ def executeClassifier():
     logr, lgr_fpr, lgr_tpr = log_reg(X_train_scaled, X_test_scaled, y_train, y_test, y, True, genplot)
     rfc, rfc_fpr, rfc_tpr = rfClassifier(X_train_scaled, X_test_scaled, y_train, y_test, y, True, genplot)
     mlp, mlp_frp, mlp_tpr = mlpClassifier(X_train_scaled, X_test_scaled, y_train, y_test, y, True, genplot)
-    kms, kms_frp, kms_tpr = kmns(X_train_scaled, X_test_scaled, y_train, y_test, True)
+    kms, kms_frp, kms_tpr = kmns(X_train_scaled, X_test_scaled, y_train, y_test, False)
     toc = time.perf_counter()
     print(f"\n-- Learning completed in {toc - tic:0.4f} seconds")
 
@@ -88,7 +65,7 @@ def executeClassifier():
     pickle.dump(rfc.fit(X_train, y_train), open(rfc_filename, 'wb'))
     pickle.dump(mlp.fit(X_train, y_train), open(mlp_filename, 'wb'))
     pickle.dump(logr.fit(X_train, y_train), open(lr_filename, 'wb'))
-    pickle.dump(kms.fit(X_train, y_train), open(kms_filename, 'wb'))
+
     toc = time.perf_counter()
     print(f"-- Models saved in {toc - tic:0.4f} seconds\n")
 
@@ -112,14 +89,16 @@ def gridSearch():
     knn_gd, knc_time = kncWithGridView(X_train_scaled, y_train)  # Multi Layer Perceptron
     rfc_gd, rfc_time = rfcWithGridView(X_train_scaled, y_train)  # K-Neighbors
     mlp_gd, mlp_time = mlpWithGridView(X_train_scaled, y_train)  # Multi Layer Perceptron
-    lr_gd, lr_time = log_regWithGridView(X_train_scaled, y_train)
+    lr_gd, lr_time = log_regWithGridView(X_train_scaled, y_train) #K-Means
+    score_k, kmns_time = kmns_k_search(x, genplot)
     print("\nBEST PARAMS:")
     print(f"- DTC: {dtc_gd.best_params_} - {dtc_time:0.4f} seconds")
     print(f"- KNN: {knn_gd.best_params_} - {knc_time:0.4f} seconds")
     print(f"- RFC: {rfc_gd.best_params_} - {rfc_time:0.4f} seconds")
     print(f"- MLP: {mlp_gd.best_params_} - {mlp_time:0.4f} seconds")
     print(f"- LR: {lr_gd.best_params_} - {lr_time:0.4f} seconds")
-    print(f"-- Fine optimization end in {dtc_time + knc_time + rfc_time + mlp_time + lr_time:0.4f} seconds")
+    print(f"- kMeans: {score_k:0.4f} - {kmns_time:0.4f} seconds")
+    print(f"-- Fine optimization end in {dtc_time + knc_time + rfc_time + mlp_time + lr_time + kmns_time:0.4f} seconds")
 
 
 def prediction():
@@ -142,7 +121,7 @@ def prediction():
     zx = [[1, 51, 15, 2.0, 24.0, 1679, 0.800, 0.987]]  # inventato
     # 'M/F', 'Age', 'EDUC', 'SES', 'MMSE', 'eTIV', 'nWBV', 'ASF'
 
-    test = xy
+    test = xx
     tic = time.perf_counter()
     print("\nTEST: ", test[0], "\n")
     pred1 = dct_load.predict(test)
